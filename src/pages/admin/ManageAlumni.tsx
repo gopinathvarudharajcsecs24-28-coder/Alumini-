@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { Home, Users, GraduationCap, Briefcase, Search, Filter, MoreVertical, Edit, Trash2, CheckCircle, XCircle, ChevronRight } from 'lucide-react';
+import { Home, Users, GraduationCap, Briefcase, Search, Filter, MoreVertical, Edit, Trash2, CheckCircle, XCircle, ChevronRight, Download } from 'lucide-react';
 import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { X, Plus } from 'lucide-react';
@@ -23,6 +23,8 @@ export default function ManageAlumni() {
     status: 'Active'
   });
 
+  const [exporting, setExporting] = useState(false);
+
   const fetchAlumni = async () => {
     setLoading(true);
     try {
@@ -42,6 +44,54 @@ export default function ManageAlumni() {
   useEffect(() => {
     fetchAlumni();
   }, []);
+
+  const handleExportAlumni = async () => {
+    setExporting(true);
+    try {
+      if (filteredAlumni.length === 0) {
+        alert('No data to export');
+        return;
+      }
+
+      // Define CSV headers
+      const headers = ['Full Name', 'Register Number', 'Department', 'Batch', 'Company', 'Job Role', 'Institutional Email', 'Status'];
+      
+      // Map data to rows
+      const rows = filteredAlumni.map((person: any) => [
+        person.fullName || '',
+        person.registerNumber || '',
+        person.department || '',
+        person.batch || '',
+        person.companyName || '',
+        person.jobRole || '',
+        person.institutionalEmail || '',
+        person.status || 'Active'
+      ]);
+
+      // Combine headers and rows
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      // Create download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `ksrce_alumni_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export data. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleAddAlumni = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,6 +196,14 @@ export default function ManageAlumni() {
                 <option key={dept} value={dept}>{dept}</option>
               ))}
             </select>
+            <button 
+              onClick={handleExportAlumni}
+              disabled={exporting}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors shadow-sm whitespace-nowrap group disabled:opacity-50"
+            >
+              <Download className={`h-4 w-4 ${exporting ? 'animate-bounce' : ''}`} />
+              {exporting ? 'Exporting...' : 'Export CSV'}
+            </button>
             <button 
               onClick={() => setShowAddModal(true)}
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap group"

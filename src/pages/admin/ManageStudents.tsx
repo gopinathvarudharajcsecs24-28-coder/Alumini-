@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { Home, Users, GraduationCap, Briefcase, Search, Filter, Mail, Edit, Trash2, CheckCircle, XCircle, ChevronRight } from 'lucide-react';
+import { Home, Users, GraduationCap, Briefcase, Search, Filter, Mail, Edit, Trash2, CheckCircle, XCircle, ChevronRight, Download } from 'lucide-react';
 import { collection, getDocs, query, where, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { X, Plus } from 'lucide-react';
@@ -18,6 +18,8 @@ export default function ManageStudents() {
     password: '', // In a real app, you'd handle this differently
     status: 'Active'
   });
+
+  const [exporting, setExporting] = useState(false);
 
   const fetchStudents = async () => {
     setLoading(true);
@@ -39,6 +41,50 @@ export default function ManageStudents() {
   useEffect(() => {
     fetchStudents();
   }, []);
+
+  const handleExportStudents = async () => {
+    setExporting(true);
+    try {
+      if (filteredStudents.length === 0) {
+        alert('No data to export');
+        return;
+      }
+
+      // Define CSV headers
+      const headers = ['Full Name', 'Email', 'Registered On', 'Status'];
+      
+      // Map data to rows
+      const rows = filteredStudents.map((student: any) => [
+        student.name || '',
+        student.email || '',
+        student.createdAt ? new Date(student.createdAt).toLocaleDateString() : '',
+        'Active'
+      ]);
+
+      // Combine headers and rows
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      // Create download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `ksrce_students_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export data. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const handleAddStudent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,6 +174,14 @@ export default function ManageStudents() {
               <option value="Active">Active</option>
               <option value="Inactive">Inactive</option>
             </select>
+            <button 
+              onClick={handleExportStudents}
+              disabled={exporting}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors shadow-sm whitespace-nowrap group disabled:opacity-50"
+            >
+              <Download className={`h-4 w-4 ${exporting ? 'animate-bounce' : ''}`} />
+              {exporting ? 'Exporting...' : 'Export CSV'}
+            </button>
             <button 
               onClick={() => setShowAddModal(true)}
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap group"

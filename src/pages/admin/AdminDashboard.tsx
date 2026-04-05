@@ -16,6 +16,8 @@ export default function AdminDashboard() {
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [exporting, setExporting] = useState(false);
+
   const fetchStats = async () => {
     setLoading(true);
     try {
@@ -58,6 +60,63 @@ export default function AdminDashboard() {
     fetchStats();
   }, []);
 
+  const handleExportData = async () => {
+    setExporting(true);
+    try {
+      const alumniSnap = await getDocs(collection(db, 'alumni_profiles'));
+      const studentSnap = await getDocs(collection(db, 'users'));
+      
+      const alumni = alumniSnap.docs.map(doc => ({ ...doc.data() as any, type: 'Alumni' }));
+      const students = studentSnap.docs.map(doc => ({ ...doc.data() as any, type: 'Student' })).filter((u: any) => u.role === 'student');
+      
+      const allUsers = [...alumni, ...students];
+      
+      if (allUsers.length === 0) {
+        alert('No data to export');
+        return;
+      }
+
+      // Define CSV headers
+      const headers = ['Type', 'Full Name', 'Email', 'Role', 'Department', 'Batch', 'Company', 'Designation', 'Location'];
+      
+      // Map data to rows
+      const rows = allUsers.map((user: any) => [
+        user.type || '',
+        user.fullName || user.displayName || '',
+        user.email || '',
+        user.role || '',
+        user.department || '',
+        user.batch || '',
+        user.company || '',
+        user.designation || '',
+        user.location || ''
+      ]);
+
+      // Combine headers and rows
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      // Create download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `ksrce_users_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export data. Please try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const handleSeedData = async () => {
     if (window.confirm('This will add 10 demo alumni profiles. Continue?')) {
       await seedDemoData();
@@ -94,9 +153,13 @@ export default function AdminDashboard() {
             Seed Demo Data
             <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
           </button>
-          <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm group">
-            <Download className="h-4 w-4" />
-            Export Data
+          <button 
+            onClick={handleExportData}
+            disabled={exporting}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm group disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className={`h-4 w-4 ${exporting ? 'animate-bounce' : ''}`} />
+            {exporting ? 'Exporting...' : 'Export Data'}
             <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>

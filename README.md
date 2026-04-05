@@ -1,34 +1,64 @@
-# Alumni Portal - Netlify Deployment Guide
+# KSRCE Alumni Portal
 
-This application is ready to be hosted on [Netlify](https://www.netlify.com/).
+A comprehensive platform for K.S.R. College of Engineering (KSRCE) to connect students, alumni, and administrators.
 
-## Deployment Steps
+## Features
 
-1. **Export the Project:**
-   - Go to the **Settings** menu in AI Studio.
-   - Select **Export to GitHub** or **Download ZIP**.
+### For Students
+- **Alumni Directory**: Browse and search for alumni by department, batch, and company.
+- **Job Board**: Access job and internship opportunities shared by the alumni network.
+- **Mentorship**: Connect with alumni who are available for mentoring.
+- **Profiles**: View detailed professional profiles of alumni.
 
-2. **Connect to Netlify:**
-   - Log in to your Netlify account.
-   - Click **Add new site** > **Import an existing project**.
-   - Connect your GitHub repository (or upload the ZIP).
+### For Alumni
+- **Profile Management**: Maintain a professional profile with work experience and contact details.
+- **Job Posting**: Share career opportunities with the student community.
+- **Mentorship Toggle**: Opt-in or out of mentoring students.
+- **Dashboard**: Quick overview of profile status and community activity.
 
-3. **Configure Build Settings:**
-   - **Build Command:** `npm run build`
-   - **Publish Directory:** `dist`
-   - **Base Directory:** (Leave empty if the project is in the root)
+### For Administrators
+- **User Management**: Manage student and alumni accounts.
+- **Job Portal Control**: Moderate and manage all job postings.
+- **Analytics**: View growth stats and community activity.
+- **Data Management**: Seed demo data and export community information.
 
-4. **Set Environment Variables:**
-   In the Netlify UI, go to **Site settings** > **Environment variables** and add:
-   - `GEMINI_API_KEY`: Your Gemini API key.
-   - `APP_URL`: The final URL of your Netlify site (e.g., `https://your-site-name.netlify.app`).
+## Tech Stack
+- **Frontend**: React 19, Vite, Tailwind CSS 4
+- **Backend/Database**: Firebase (Firestore, Authentication)
+- **Icons**: Lucide React
+- **Animations**: Framer Motion
+- **Charts**: Recharts
 
-## Netlify Configuration
+## Getting Started
 
-The project includes a `netlify.toml` file that handles:
-- Build settings.
-- SPA redirects (ensuring React Router works correctly on page refresh).
+### Prerequisites
+- Node.js installed
+- Firebase project set up
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/your-username/your-repo-name)
+### Installation
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables:
+   Create a `.env` file in the root and add:
+   ```env
+   GEMINI_API_KEY=your_api_key_here
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-*Note: Replace the repository URL in the button above with your actual GitHub repository URL.*
+## Deployment
+
+### Netlify
+This project is pre-configured for Netlify.
+1. Connect your repository to Netlify.
+2. Ensure the build command is `npm run build` and the publish directory is `dist`.
+3. Add your `GEMINI_API_KEY` in the Netlify Environment Variables settings.
+4. The `netlify.toml` and `public/_redirects` files handle the SPA routing automatically.
+
+## License
+Apache-2.0
