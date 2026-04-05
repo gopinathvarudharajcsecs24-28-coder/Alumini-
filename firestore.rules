@@ -3,6 +3,52 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (auth.uid)
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - name: string (required)
+    //   - role: string (required, ['student', 'alumni', 'admin'])
+    //   - createdAt: string (required, ISO 8601)
+    //
+    // Collection: alumni_profiles
+    // Document ID: profileId (auth.uid)
+    // Fields:
+    //   - fullName: string (required)
+    //   - registerNumber: string (required)
+    //   - department: string (required)
+    //   - batch: string (required)
+    //   - institutionalEmail: string (required)
+    //   - personalEmail: string (optional)
+    //   - mobileNumber: string (optional)
+    //   - currentCity: string (optional)
+    //   - currentState: string (optional)
+    //   - currentCountry: string (optional)
+    //   - degree: string (optional)
+    //   - specialization: string (optional)
+    //   - graduationYear: string (optional)
+    //   - employmentStatus: string (optional)
+    //   - companyName: string (optional)
+    //   - jobRole: string (optional)
+    //   - workExperience: number (optional)
+    //   - skills: string (optional)
+    //   - linkedIn: string (optional)
+    //   - portfolio: string (optional)
+    //   - aboutMe: string (optional)
+    //   - mentorAvailability: bool (optional)
+    //   - internshipSupport: bool (optional)
+    //   - placementSupport: bool (optional)
+    //   - guestLectureAvailability: bool (optional)
+    //   - status: string (optional)
+    //   - lastUpdated: string (required, ISO 8601)
+    //
+    // ===============================================================
+
     // Helper Functions
     function isAuthenticated() {
       return request.auth != null;
@@ -15,33 +61,68 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && 
         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-         (request.auth.token.email == "gopinathvarudharaj@gmail.com" && request.auth.token.email_verified == true));
+         request.auth.token.email == "gopinathvarudharaj@gmail.com" ||
+         request.auth.token.email == "admin@ksrce.ac.in");
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Domain Validators
+    function isValidUser(data) {
+      return data.uid is string && 
+             data.email is string && isValidEmail(data.email) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.role in ['student', 'alumni', 'admin'] &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidAlumniProfile(data) {
+      return data.fullName is string && data.fullName.size() > 0 && data.fullName.size() < 100 &&
+             data.registerNumber is string &&
+             data.department is string &&
+             data.batch is string &&
+             data.institutionalEmail is string && isValidEmail(data.institutionalEmail) &&
+             isValidDateString(data.lastUpdated);
     }
 
     // Users Collection
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && isOwner(userId);
-      allow update: if isOwner(userId) || isAdmin();
-      allow delete: if false; // No hard deletes
+      // Only the owner or an admin can read PII
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Any authenticated user can create their own document
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data);
+      
+      // Only owner or admin can update, but role can only be changed by admin
+      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role && isValidUser(request.resource.data)) || isAdmin();
+      
+      allow delete: if false;
     }
 
     // Alumni Profiles Collection
     match /alumni_profiles/{profileId} {
-      // Anyone authenticated can read active profiles, admins can read all
+      // Anyone authenticated can read profiles (for directory), but only owner/admin can read sensitive fields if any
+      // In this app, profiles are public for students to see
       allow read: if isAuthenticated();
       
-      // Only the owner can create their profile, or an admin
-      allow create: if isAuthenticated() && (isOwner(profileId) || isAdmin());
+      allow create: if isAuthenticated() && (isOwner(profileId) || isAdmin()) && isValidAlumniProfile(request.resource.data);
       
-      // Only the owner can update their profile, or an admin
-      allow update: if isAuthenticated() && (isOwner(profileId) || isAdmin());
+      allow update: if isAuthenticated() && (isOwner(profileId) || isAdmin()) && isValidAlumniProfile(request.resource.data);
       
-      // No hard deletes allowed
-      allow delete: if false;
+      allow delete: if isAdmin();
     }
 
-    // Other collections (events, announcements, etc.)
+    // Catch-all for other collections
     match /{document=**} {
       allow read: if isAuthenticated();
       allow write: if isAdmin();

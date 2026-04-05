@@ -1,5 +1,5 @@
 import { doc, setDoc, writeBatch } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, auth } from './firebase';
 
 export const seedDemoData = async () => {
   try {
@@ -126,8 +126,15 @@ export const seedDemoData = async () => {
     await batch.commit();
     console.log("Demo data seeded successfully!");
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error seeding data:", error);
+    if (error.message?.includes('insufficient permissions')) {
+      console.error("Permission error details:", {
+        uid: auth.currentUser?.uid,
+        email: auth.currentUser?.email,
+        role: 'admin'
+      });
+    }
     return false;
   }
 };

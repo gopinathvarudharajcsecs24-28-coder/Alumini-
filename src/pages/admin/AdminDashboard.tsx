@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Home, Users, GraduationCap, Briefcase, Download, Database, TrendingUp, UserCheck, Clock } from 'lucide-react';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { db, auth } from '../../lib/firebase';
 import { seedDemoData } from '../../lib/seedData';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
@@ -40,8 +40,15 @@ export default function AdminDashboard() {
         ...doc.data()
       })));
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching stats:", error);
+      if (error.message?.includes('insufficient permissions')) {
+        console.error("Permission error details:", {
+          uid: auth.currentUser?.uid,
+          email: auth.currentUser?.email,
+          role: 'admin' // We know they are in admin dashboard
+        });
+      }
     } finally {
       setLoading(false);
     }

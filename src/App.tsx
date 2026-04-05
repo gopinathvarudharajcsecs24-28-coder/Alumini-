@@ -13,6 +13,12 @@ import AlumniDashboard from './pages/alumni/AlumniDashboard';
 import AlumniProfileForm from './pages/alumni/AlumniProfileForm';
 import StudentDashboard from './pages/student/StudentDashboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import ManageAlumni from './pages/admin/ManageAlumni';
+import ManageStudents from './pages/admin/ManageStudents';
+import JobPortal from './pages/admin/JobPortal';
+import AlumniDirectory from './pages/student/AlumniDirectory';
+import JobBoard from './pages/student/JobBoard';
+import JobUpdates from './pages/alumni/JobUpdates';
 
 const ProtectedRoute = ({ children, allowedRole }: { children: React.ReactNode, allowedRole: string }) => {
   const { user, role, loading } = useAuth();
@@ -38,6 +44,7 @@ export default function App() {
               <Routes>
                 <Route path="dashboard" element={<AlumniDashboard />} />
                 <Route path="profile" element={<AlumniProfileForm />} />
+                <Route path="jobs" element={<JobUpdates />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
             </ProtectedRoute>
@@ -48,6 +55,8 @@ export default function App() {
             <ProtectedRoute allowedRole="student">
               <Routes>
                 <Route path="dashboard" element={<StudentDashboard />} />
+                <Route path="directory" element={<AlumniDirectory />} />
+                <Route path="jobs" element={<JobBoard />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
             </ProtectedRoute>
@@ -58,6 +67,9 @@ export default function App() {
             <ProtectedRoute allowedRole="admin">
               <Routes>
                 <Route path="dashboard" element={<AdminDashboard />} />
+                <Route path="alumni" element={<ManageAlumni />} />
+                <Route path="students" element={<ManageStudents />} />
+                <Route path="jobs" element={<JobPortal />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
             </ProtectedRoute>
