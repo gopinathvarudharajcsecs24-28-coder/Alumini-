@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import DashboardLayout from '../../components/DashboardLayout';
-import { Home, User, Briefcase, Award, Edit } from 'lucide-react';
+import { Home, User, Briefcase, Award, Edit, ChevronRight } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
@@ -98,8 +98,12 @@ export default function AlumniDashboard() {
             <Award className="h-8 w-8 mb-4 text-blue-100" />
             <h3 className="text-lg font-bold mb-2">Share an Opportunity</h3>
             <p className="text-blue-100 text-sm mb-6">Help fellow students by posting job or internship openings from your organization.</p>
-            <button className="w-full bg-white text-blue-600 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors">
+            <button 
+              onClick={() => navigate('/alumni/jobs')}
+              className="flex items-center justify-center gap-2 w-full bg-white text-blue-600 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors group"
+            >
               Post a Job
+              <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
         </div>

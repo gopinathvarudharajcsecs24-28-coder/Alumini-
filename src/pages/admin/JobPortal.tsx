@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { Home, Users, GraduationCap, Briefcase, Search, Plus, Edit, Trash2, MapPin, DollarSign, Clock, X } from 'lucide-react';
-import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { Home, Users, GraduationCap, Briefcase, Search, Plus, Edit, Trash2, MapPin, DollarSign, Clock, X, ChevronRight } from 'lucide-react';
+import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
 export default function JobPortal() {
@@ -9,6 +9,7 @@ export default function JobPortal() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newJob, setNewJob] = useState({
     title: '',
     company: '',
@@ -52,12 +53,20 @@ export default function JobPortal() {
   const handleAddJob = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await addDoc(collection(db, 'jobs'), {
-        ...newJob,
-        status: 'Active',
-        createdAt: new Date().toISOString()
-      });
+      if (editingId) {
+        await updateDoc(doc(db, 'jobs', editingId), {
+          ...newJob,
+          lastUpdated: new Date().toISOString()
+        });
+      } else {
+        await addDoc(collection(db, 'jobs'), {
+          ...newJob,
+          status: 'Active',
+          createdAt: new Date().toISOString()
+        });
+      }
       setShowAddModal(false);
+      setEditingId(null);
       setNewJob({
         title: '',
         company: '',
@@ -71,9 +80,25 @@ export default function JobPortal() {
       });
       fetchJobs();
     } catch (error) {
-      console.error("Error adding job:", error);
-      alert("Failed to add job.");
+      console.error("Error saving job:", error);
+      alert("Failed to save job.");
     }
+  };
+
+  const handleEditJob = (job: any) => {
+    setEditingId(job.id);
+    setNewJob({
+      title: job.title || '',
+      company: job.company || '',
+      location: job.location || '',
+      salary: job.salary || '',
+      type: job.type || 'Full-time',
+      postedBy: job.postedBy || 'Admin',
+      description: job.description || '',
+      requirements: job.requirements || '',
+      link: job.link || ''
+    });
+    setShowAddModal(true);
   };
 
   const handleDeleteJob = async (id: string) => {
@@ -110,10 +135,11 @@ export default function JobPortal() {
           </div>
           <button 
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap"
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap group"
           >
             <Plus className="h-4 w-4" />
             Add New Job
+            <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
 
@@ -168,7 +194,10 @@ export default function JobPortal() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          <button 
+                            onClick={() => handleEditJob(job)}
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button 
@@ -192,8 +221,25 @@ export default function JobPortal() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
               <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between">
-                <h3 className="text-xl font-bold text-slate-900">Post New Job</h3>
-                <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <h3 className="text-xl font-bold text-slate-900">{editingId ? 'Edit Job Posting' : 'Post New Job'}</h3>
+                <button 
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setEditingId(null);
+                    setNewJob({
+                      title: '',
+                      company: '',
+                      location: '',
+                      salary: '',
+                      type: 'Full-time',
+                      postedBy: 'Admin',
+                      description: '',
+                      requirements: '',
+                      link: ''
+                    });
+                  }} 
+                  className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                >
                   <X className="h-5 w-5 text-slate-500" />
                 </button>
               </div>
@@ -279,7 +325,21 @@ export default function JobPortal() {
                 <div className="pt-4 flex gap-3">
                   <button
                     type="button"
-                    onClick={() => setShowAddModal(false)}
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setEditingId(null);
+                      setNewJob({
+                        title: '',
+                        company: '',
+                        location: '',
+                        salary: '',
+                        type: 'Full-time',
+                        postedBy: 'Admin',
+                        description: '',
+                        requirements: '',
+                        link: ''
+                      });
+                    }}
                     className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-50 transition-colors"
                   >
                     Cancel
@@ -288,7 +348,7 @@ export default function JobPortal() {
                     type="submit"
                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-sm"
                   >
-                    Post Job
+                    {editingId ? 'Update Job' : 'Post Job'}
                   </button>
                 </div>
               </form>

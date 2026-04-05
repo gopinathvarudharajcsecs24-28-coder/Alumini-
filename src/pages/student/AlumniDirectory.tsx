@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { Home, Users, Search, Filter, GraduationCap, MapPin, Briefcase } from 'lucide-react';
+import { Home, Users, Search, Filter, GraduationCap, MapPin, Briefcase, ChevronRight } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Link } from 'react-router-dom';
@@ -126,9 +126,10 @@ export default function AlumniDirectory() {
                     </div>
                     <Link 
                       to={`/student/profile/${person.id}`}
-                      className="block w-full text-center bg-slate-50 text-slate-700 py-2 rounded-lg font-medium hover:bg-blue-600 hover:text-white transition-all"
+                      className="flex items-center justify-center gap-2 w-full bg-slate-50 text-slate-700 py-2 rounded-lg font-medium hover:bg-blue-600 hover:text-white transition-all group"
                     >
                       View Profile
+                      <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                   </div>
                 </div>

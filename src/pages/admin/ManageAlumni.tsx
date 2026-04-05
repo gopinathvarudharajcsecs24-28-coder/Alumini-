@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { Home, Users, GraduationCap, Briefcase, Search, Filter, MoreVertical, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
-import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { Home, Users, GraduationCap, Briefcase, Search, Filter, MoreVertical, Edit, Trash2, CheckCircle, XCircle, ChevronRight } from 'lucide-react';
+import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { X, Plus } from 'lucide-react';
 
@@ -11,6 +11,7 @@ export default function ManageAlumni() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDept, setSelectedDept] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newAlumni, setNewAlumni] = useState({
     fullName: '',
     registerNumber: '',
@@ -45,11 +46,19 @@ export default function ManageAlumni() {
   const handleAddAlumni = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await addDoc(collection(db, 'alumni_profiles'), {
-        ...newAlumni,
-        lastUpdated: new Date().toISOString()
-      });
+      if (editingId) {
+        await updateDoc(doc(db, 'alumni_profiles', editingId), {
+          ...newAlumni,
+          lastUpdated: new Date().toISOString()
+        });
+      } else {
+        await addDoc(collection(db, 'alumni_profiles'), {
+          ...newAlumni,
+          lastUpdated: new Date().toISOString()
+        });
+      }
       setShowAddModal(false);
+      setEditingId(null);
       setNewAlumni({
         fullName: '',
         registerNumber: '',
@@ -62,9 +71,24 @@ export default function ManageAlumni() {
       });
       fetchAlumni();
     } catch (error) {
-      console.error("Error adding alumni:", error);
-      alert("Failed to add alumni. Please try again.");
+      console.error("Error saving alumni:", error);
+      alert("Failed to save alumni. Please try again.");
     }
+  };
+
+  const handleEditAlumni = (person: any) => {
+    setEditingId(person.id);
+    setNewAlumni({
+      fullName: person.fullName || '',
+      registerNumber: person.registerNumber || '',
+      department: person.department || '',
+      batch: person.batch || '',
+      companyName: person.companyName || '',
+      jobRole: person.jobRole || '',
+      institutionalEmail: person.institutionalEmail || '',
+      status: person.status || 'Active'
+    });
+    setShowAddModal(true);
   };
 
   const handleDeleteAlumni = async (id: string) => {
@@ -124,10 +148,11 @@ export default function ManageAlumni() {
             </select>
             <button 
               onClick={() => setShowAddModal(true)}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap group"
             >
               <Plus className="h-4 w-4" />
               Add Alumni
+              <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </div>
         </div>
@@ -186,7 +211,10 @@ export default function ManageAlumni() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          <button 
+                            onClick={() => handleEditAlumni(person)}
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button 
@@ -210,8 +238,24 @@ export default function ManageAlumni() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
               <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between">
-                <h3 className="text-xl font-bold text-slate-900">Add New Alumni</h3>
-                <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <h3 className="text-xl font-bold text-slate-900">{editingId ? 'Edit Alumni' : 'Add New Alumni'}</h3>
+                <button 
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setEditingId(null);
+                    setNewAlumni({
+                      fullName: '',
+                      registerNumber: '',
+                      department: '',
+                      batch: '',
+                      companyName: '',
+                      jobRole: '',
+                      institutionalEmail: '',
+                      status: 'Active'
+                    });
+                  }} 
+                  className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                >
                   <X className="h-5 w-5 text-slate-500" />
                 </button>
               </div>
@@ -296,7 +340,20 @@ export default function ManageAlumni() {
                 <div className="pt-4 flex gap-3">
                   <button
                     type="button"
-                    onClick={() => setShowAddModal(false)}
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setEditingId(null);
+                      setNewAlumni({
+                        fullName: '',
+                        registerNumber: '',
+                        department: '',
+                        batch: '',
+                        companyName: '',
+                        jobRole: '',
+                        institutionalEmail: '',
+                        status: 'Active'
+                      });
+                    }}
                     className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-50 transition-colors"
                   >
                     Cancel
@@ -305,7 +362,7 @@ export default function ManageAlumni() {
                     type="submit"
                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-sm"
                   >
-                    Save Alumni
+                    {editingId ? 'Update Alumni' : 'Save Alumni'}
                   </button>
                 </div>
               </form>

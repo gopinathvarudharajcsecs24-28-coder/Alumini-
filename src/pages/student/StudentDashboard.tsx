@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { Home, Users, GraduationCap, Briefcase, ArrowRight, Search, MapPin } from 'lucide-react';
+import { Home, Users, GraduationCap, Briefcase, ChevronRight, Search, MapPin } from 'lucide-react';
 import { collection, getDocs, query, limit, orderBy } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Link } from 'react-router-dom';
@@ -52,7 +52,7 @@ export default function StudentDashboard() {
               <div className="p-3 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
-              <ArrowRight className="h-5 w-5 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+              <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
             </div>
             <h3 className="text-lg font-bold text-slate-900 mb-1">Alumni Directory</h3>
             <p className="text-slate-500 text-sm">Browse and connect with alumni from various departments and batches.</p>
@@ -63,7 +63,7 @@ export default function StudentDashboard() {
               <div className="p-3 bg-purple-50 rounded-lg group-hover:bg-purple-100 transition-colors">
                 <Briefcase className="h-6 w-6 text-purple-600" />
               </div>
-              <ArrowRight className="h-5 w-5 text-slate-300 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
+              <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
             </div>
             <h3 className="text-lg font-bold text-slate-900 mb-1">Job Board</h3>
             <p className="text-slate-500 text-sm">Explore job and internship opportunities shared by our alumni network.</p>
@@ -74,8 +74,8 @@ export default function StudentDashboard() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-bold text-slate-900">Recently Joined Alumni</h3>
-            <Link to="/student/directory" className="text-blue-600 hover:text-blue-700 text-sm font-bold flex items-center gap-1">
-              View All <ArrowRight className="h-4 w-4" />
+            <Link to="/student/directory" className="text-blue-600 hover:text-blue-700 text-sm font-bold flex items-center gap-1 group">
+              View All <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
 
@@ -108,8 +108,9 @@ export default function StudentDashboard() {
                       <span>Batch of {person.batch}</span>
                     </div>
                   </div>
-                  <Link to={`/student/profile/${person.id}`} className="block w-full text-center py-2 bg-slate-50 text-slate-700 rounded-lg text-sm font-bold hover:bg-blue-600 hover:text-white transition-all">
+                  <Link to={`/student/profile/${person.id}`} className="flex items-center justify-center gap-2 w-full py-2 bg-slate-50 text-slate-700 rounded-lg text-sm font-bold hover:bg-blue-600 hover:text-white transition-all group">
                     View Profile
+                    <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                   </Link>
                 </div>
               ))}

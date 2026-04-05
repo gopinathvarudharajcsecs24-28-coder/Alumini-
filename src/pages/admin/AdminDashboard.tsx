@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
-import { Home, Users, GraduationCap, Briefcase, Download, Database, TrendingUp, UserCheck, Clock } from 'lucide-react';
+import { Home, Users, GraduationCap, Briefcase, Download, Database, TrendingUp, UserCheck, Clock, ChevronRight } from 'lucide-react';
 import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db, auth } from '../../lib/firebase';
 import { seedDemoData } from '../../lib/seedData';
@@ -88,14 +88,16 @@ export default function AdminDashboard() {
         <div className="flex justify-end gap-4">
           <button 
             onClick={handleSeedData}
-            className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
+            className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors shadow-sm group"
           >
             <Database className="h-4 w-4" />
             Seed Demo Data
+            <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
           </button>
-          <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+          <button className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm group">
             <Download className="h-4 w-4" />
             Export Data
+            <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, User as UserIcon, Home, Users, Briefcase, Bell, Menu, X } from 'lucide-react';
+import { LogOut, User as UserIcon, Home, Users, Briefcase, Bell, Menu, X, ChevronRight } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface NavItem {
@@ -59,14 +59,20 @@ export default function DashboardLayout({ children, navItems, title }: Dashboard
                 to={item.href}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                  "flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors group",
                   isActive 
                     ? "bg-blue-50 text-blue-700" 
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 )}
               >
-                <item.icon className={cn("h-5 w-5", isActive ? "text-blue-700" : "text-slate-400")} />
-                {item.name}
+                <div className="flex items-center gap-3">
+                  <item.icon className={cn("h-5 w-5", isActive ? "text-blue-700" : "text-slate-400")} />
+                  {item.name}
+                </div>
+                <ChevronRight className={cn(
+                  "h-4 w-4 transition-all",
+                  isActive ? "text-blue-400" : "text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5"
+                )} />
               </Link>
             );
           })}
