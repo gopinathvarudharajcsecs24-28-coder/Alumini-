@@ -1,0 +1,50 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "gopinathvarudharaj@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if false; // No hard deletes
+    }
+
+    // Alumni Profiles Collection
+    match /alumni_profiles/{profileId} {
+      // Anyone authenticated can read active profiles, admins can read all
+      allow read: if isAuthenticated();
+      
+      // Only the owner can create their profile, or an admin
+      allow create: if isAuthenticated() && (isOwner(profileId) || isAdmin());
+      
+      // Only the owner can update their profile, or an admin
+      allow update: if isAuthenticated() && (isOwner(profileId) || isAdmin());
+      
+      // No hard deletes allowed
+      allow delete: if false;
+    }
+
+    // Other collections (events, announcements, etc.)
+    match /{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}

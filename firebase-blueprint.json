@@ -1,0 +1,63 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the system (Student, Alumni, or Admin)",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["student", "alumni", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "AlumniProfile": {
+      "title": "Alumni Profile",
+      "description": "Detailed profile for an alumni",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "fullName": { "type": "string" },
+        "registerNumber": { "type": "string" },
+        "department": { "type": "string" },
+        "batch": { "type": "string" },
+        "institutionalEmail": { "type": "string", "format": "email" },
+        "personalEmail": { "type": "string", "format": "email" },
+        "mobileNumber": { "type": "string" },
+        "currentCity": { "type": "string" },
+        "currentState": { "type": "string" },
+        "currentCountry": { "type": "string" },
+        "degree": { "type": "string" },
+        "specialization": { "type": "string" },
+        "graduationYear": { "type": "string" },
+        "employmentStatus": { "type": "string" },
+        "companyName": { "type": "string" },
+        "jobRole": { "type": "string" },
+        "workExperience": { "type": "string" },
+        "skills": { "type": "string" },
+        "linkedIn": { "type": "string" },
+        "portfolio": { "type": "string" },
+        "aboutMe": { "type": "string" },
+        "mentorAvailability": { "type": "boolean" },
+        "internshipSupport": { "type": "boolean" },
+        "placementSupport": { "type": "boolean" },
+        "guestLectureAvailability": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["Active", "Archived"] },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "fullName", "department", "batch", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores basic user account information and roles."
+    },
+    "/alumni_profiles/{profileId}": {
+      "schema": { "$ref": "#/entities/AlumniProfile" },
+      "description": "Stores detailed profiles of alumni."
+    }
+  }
+}
