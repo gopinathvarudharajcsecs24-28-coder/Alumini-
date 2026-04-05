@@ -115,10 +115,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
     } catch (error: any) {
+      if (error.code === 'auth/popup-closed-by-user') {
+        throw error;
+      }
       console.error('Login error:', error);
       if (error.code === 'auth/network-request-failed') {
         throw new Error('Network error. Please check your connection and try again.');
-      } else if (error.message.includes('INTERNAL ASSERTION FAILED')) {
+      } else if (error.message?.includes('INTERNAL ASSERTION FAILED')) {
         throw new Error('An internal authentication error occurred. Please try refreshing the page.');
       }
       throw error;
@@ -161,14 +164,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
     } catch (error: any) {
-      console.error('Registration error:', error);
       if (error.code === 'auth/email-already-in-use') {
         throw new Error('This email is already registered. Please sign in instead.');
       } else if (error.code === 'auth/weak-password') {
         throw new Error('Password should be at least 6 characters.');
       } else if (error.code === 'auth/operation-not-allowed') {
         throw new Error('Email/Password accounts are not enabled. Please enable them in the Firebase Console.');
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('Please enter a valid email address.');
       }
+      console.error('Registration error:', error);
       throw error;
     }
   };
@@ -194,12 +199,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         status: 'Success'
       });
     } catch (error: any) {
-      console.error('Email login error:', error);
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
         throw new Error('Invalid email or password.');
       } else if (error.code === 'auth/operation-not-allowed') {
         throw new Error('Email/Password accounts are not enabled. Please enable them in the Firebase Console.');
+      } else if (error.code === 'auth/too-many-requests') {
+        throw new Error('Too many failed login attempts. Please try again later.');
+      } else if (error.code === 'auth/user-disabled') {
+        throw new Error('This account has been disabled.');
       }
+      console.error('Email login error:', error);
       throw error;
     }
   };
