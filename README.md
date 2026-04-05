@@ -1,34 +1,20 @@
-# Alumni Portal - Netlify Deployment Guide
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-This application is ready to be hosted on [Netlify](https://www.netlify.com/).
+# Run and deploy your AI Studio app
 
-## Deployment Steps
+This contains everything you need to run your app locally.
 
-1. **Export the Project:**
-   - Go to the **Settings** menu in AI Studio.
-   - Select **Export to GitHub** or **Download ZIP**.
+View your app in AI Studio: https://ai.studio/apps/0e635ffa-a1b1-4d63-b030-7710f948985e
 
-2. **Connect to Netlify:**
-   - Log in to your Netlify account.
-   - Click **Add new site** > **Import an existing project**.
-   - Connect your GitHub repository (or upload the ZIP).
+## Run Locally
 
-3. **Configure Build Settings:**
-   - **Build Command:** `npm run build`
-   - **Publish Directory:** `dist`
-   - **Base Directory:** (Leave empty if the project is in the root)
+**Prerequisites:**  Node.js
 
-4. **Set Environment Variables:**
-   In the Netlify UI, go to **Site settings** > **Environment variables** and add:
-   - `GEMINI_API_KEY`: Your Gemini API key.
-   - `APP_URL`: The final URL of your Netlify site (e.g., `https://your-site-name.netlify.app`).
 
-## Netlify Configuration
-
-The project includes a `netlify.toml` file that handles:
-- Build settings.
-- SPA redirects (ensuring React Router works correctly on page refresh).
-
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/your-username/your-repo-name)
-
-*Note: Replace the repository URL in the button above with your actual GitHub repository URL.*
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`
