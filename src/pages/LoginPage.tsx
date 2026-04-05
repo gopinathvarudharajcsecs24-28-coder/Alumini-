@@ -32,6 +32,10 @@ export default function LoginPage() {
       await loginWithGoogle(role);
       navigate(`/${role}/dashboard`);
     } catch (err: any) {
+      if (err.code === 'auth/popup-closed-by-user') {
+        // User closed the popup, don't show an error message
+        return;
+      }
       setError(err.message || 'Failed to login with Google.');
     } finally {
       setLoading(false);

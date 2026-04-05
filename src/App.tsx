@@ -19,6 +19,7 @@ import JobPortal from './pages/admin/JobPortal';
 import AlumniDirectory from './pages/student/AlumniDirectory';
 import JobBoard from './pages/student/JobBoard';
 import JobUpdates from './pages/alumni/JobUpdates';
+import AlumniProfileDetail from './pages/student/AlumniProfileDetail';
 
 const ProtectedRoute = ({ children, allowedRole }: { children: React.ReactNode, allowedRole: string }) => {
   const { user, role, loading } = useAuth();
@@ -56,6 +57,7 @@ export default function App() {
               <Routes>
                 <Route path="dashboard" element={<StudentDashboard />} />
                 <Route path="directory" element={<AlumniDirectory />} />
+                <Route path="profile/:id" element={<AlumniProfileDetail />} />
                 <Route path="jobs" element={<JobBoard />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>

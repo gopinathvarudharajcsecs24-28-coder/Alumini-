@@ -3,6 +3,7 @@ import DashboardLayout from '../../components/DashboardLayout';
 import { Home, Users, Search, Filter, GraduationCap, MapPin, Briefcase } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { Link } from 'react-router-dom';
 
 export default function AlumniDirectory() {
   const [alumni, setAlumni] = useState<any[]>([]);
@@ -123,9 +124,12 @@ export default function AlumniDirectory() {
                         </span>
                       ))}
                     </div>
-                    <button className="w-full bg-slate-50 text-slate-700 py-2 rounded-lg font-medium hover:bg-blue-600 hover:text-white transition-all">
+                    <Link 
+                      to={`/student/profile/${person.id}`}
+                      className="block w-full text-center bg-slate-50 text-slate-700 py-2 rounded-lg font-medium hover:bg-blue-600 hover:text-white transition-all"
+                    >
                       View Profile
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>

@@ -108,7 +108,7 @@ export default function StudentDashboard() {
                       <span>Batch of {person.batch}</span>
                     </div>
                   </div>
-                  <Link to="/student/directory" className="block w-full text-center py-2 bg-slate-50 text-slate-700 rounded-lg text-sm font-bold hover:bg-blue-600 hover:text-white transition-all">
+                  <Link to={`/student/profile/${person.id}`} className="block w-full text-center py-2 bg-slate-50 text-slate-700 rounded-lg text-sm font-bold hover:bg-blue-600 hover:text-white transition-all">
                     View Profile
                   </Link>
                 </div>

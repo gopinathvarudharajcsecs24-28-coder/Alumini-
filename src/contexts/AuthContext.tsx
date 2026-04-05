@@ -116,9 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      if (error.code === 'auth/popup-closed-by-user') {
-        throw new Error('Sign-in popup was closed before completing. Please try again.');
-      } else if (error.code === 'auth/network-request-failed') {
+      if (error.code === 'auth/network-request-failed') {
         throw new Error('Network error. Please check your connection and try again.');
       } else if (error.message.includes('INTERNAL ASSERTION FAILED')) {
         throw new Error('An internal authentication error occurred. Please try refreshing the page.');

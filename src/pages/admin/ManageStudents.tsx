@@ -1,33 +1,72 @@
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '../../components/DashboardLayout';
 import { Home, Users, GraduationCap, Briefcase, Search, Filter, Mail, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { X, Plus } from 'lucide-react';
 
 export default function ManageStudents() {
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newStudent, setNewStudent] = useState({
+    name: '',
+    email: '',
+    password: '', // In a real app, you'd handle this differently
+  });
+
+  const fetchStudents = async () => {
+    setLoading(true);
+    try {
+      const q = query(collection(db, 'users'), where('role', '==', 'student'));
+      const querySnapshot = await getDocs(q);
+      const studentData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setStudents(studentData);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchStudents = async () => {
-      setLoading(true);
-      try {
-        const q = query(collection(db, 'users'), where('role', '==', 'student'));
-        const querySnapshot = await getDocs(q);
-        const studentData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setStudents(studentData);
-      } catch (error) {
-        console.error("Error fetching students:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchStudents();
   }, []);
+
+  const handleAddStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      // Note: This only adds to Firestore, not Firebase Auth.
+      // In this demo, we'll just add to Firestore.
+      await addDoc(collection(db, 'users'), {
+        ...newStudent,
+        role: 'student',
+        createdAt: new Date().toISOString()
+      });
+      setShowAddModal(false);
+      setNewStudent({ name: '', email: '', password: '' });
+      fetchStudents();
+    } catch (error) {
+      console.error("Error adding student:", error);
+      alert("Failed to add student.");
+    }
+  };
+
+  const handleDeleteStudent = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this student?")) {
+      try {
+        await deleteDoc(doc(db, 'users', id));
+        fetchStudents();
+      } catch (error) {
+        console.error("Error deleting student:", error);
+      }
+    }
+  };
 
   const navItems = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: Home },
@@ -36,10 +75,12 @@ export default function ManageStudents() {
     { name: 'Job Portal', href: '/admin/jobs', icon: Briefcase },
   ];
 
-  const filteredStudents = students.filter(s => 
-    s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStudents = students.filter(s => {
+    const matchesSearch = s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        s.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = selectedStatus === '' || (selectedStatus === 'Active'); // All are active for now
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <DashboardLayout navItems={navItems} title="Manage Students">
@@ -58,11 +99,20 @@ export default function ManageStudents() {
             />
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors">
-              <Filter className="h-4 w-4" />
-              Filter
-            </button>
-            <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="flex-1 sm:flex-none px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white text-sm"
+            >
+              <option value="">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap"
+            >
+              <Plus className="h-4 w-4" />
               Add Student
             </button>
           </div>
@@ -123,7 +173,10 @@ export default function ManageStudents() {
                           <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                             <Edit className="h-4 w-4" />
                           </button>
-                          <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                          <button 
+                            onClick={() => handleDeleteStudent(student.id)}
+                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
                             <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
@@ -135,6 +188,70 @@ export default function ManageStudents() {
             </table>
           </div>
         </div>
+
+        {/* Add Student Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <h3 className="text-xl font-bold text-slate-900">Add New Student</h3>
+                <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                  <X className="h-5 w-5 text-slate-500" />
+                </button>
+              </div>
+              <form onSubmit={handleAddStudent} className="p-6 space-y-4">
+                <div className="space-y-1">
+                  <label className="text-sm font-bold text-slate-700">Full Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={newStudent.name}
+                    onChange={(e) => setNewStudent({...newStudent, name: e.target.value})}
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="Jane Doe"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-bold text-slate-700">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    value={newStudent.email}
+                    onChange={(e) => setNewStudent({...newStudent, email: e.target.value})}
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="jane@example.com"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-bold text-slate-700">Initial Password</label>
+                  <input
+                    type="password"
+                    required
+                    value={newStudent.password}
+                    onChange={(e) => setNewStudent({...newStudent, password: e.target.value})}
+                    className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div className="pt-4 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-sm"
+                  >
+                    Save Student
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
       </div>
     </DashboardLayout>
